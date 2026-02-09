@@ -17,6 +17,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
   
   // Filters
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
   const [selectedDecade, setSelectedDecade] = useState<number | null>(null);
 
@@ -26,6 +27,16 @@ export default function Home() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  // Get unique cities
+  const cities = useMemo(() => {
+    const unique = new Set(
+      buildings
+        .map((b) => b.city)
+        .filter((c): c is string => Boolean(c))
+    );
+    return Array.from(unique).sort();
+  }, [buildings]);
 
   // Get unique neighborhoods
   const neighborhoods = useMemo(() => {
@@ -49,6 +60,9 @@ export default function Home() {
   // Filtered buildings
   const filteredBuildings = useMemo(() => {
     return buildings.filter((building) => {
+      if (selectedCity && building.city !== selectedCity) {
+        return false;
+      }
       if (selectedNeighborhood && building.neighborhood !== selectedNeighborhood) {
         return false;
       }
@@ -58,7 +72,7 @@ export default function Home() {
       }
       return true;
     });
-  }, [buildings, selectedNeighborhood, selectedDecade]);
+  }, [buildings, selectedCity, selectedNeighborhood, selectedDecade]);
 
   const handleBuildingClick = (building: Building) => {
     setSelectedBuilding(building);
@@ -66,11 +80,12 @@ export default function Home() {
   };
 
   const clearFilters = () => {
+    setSelectedCity(null);
     setSelectedNeighborhood(null);
     setSelectedDecade(null);
   };
 
-  const hasFilters = selectedNeighborhood || selectedDecade;
+  const hasFilters = selectedCity || selectedNeighborhood || selectedDecade;
 
   if (loading) {
     return (
@@ -129,6 +144,24 @@ export default function Home() {
         <div className="container py-4">
           <div className="flex flex-wrap gap-3 items-center">
             <span className="text-sm font-medium text-muted-foreground">Filter by:</span>
+
+            {/* City Filter */}
+            <div className="flex flex-wrap gap-2">
+              {cities.map((city) => (
+                <Badge
+                  key={city}
+                  variant={selectedCity === city ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    setSelectedCity(
+                      selectedCity === city ? null : city
+                    )
+                  }
+                >
+                  {city}
+                </Badge>
+              ))}
+            </div>
 
             {/* Neighborhood Filter */}
             <div className="flex flex-wrap gap-2">
