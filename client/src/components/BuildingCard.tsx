@@ -6,10 +6,12 @@ import { Building2, MapPin, Calendar, Users } from "lucide-react";
 interface BuildingCardProps {
   building: Building;
   onClick: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   isSelected: boolean;
 }
 
-export default function BuildingCard({ building, onClick, isSelected }: BuildingCardProps) {
+export default function BuildingCard({ building, onClick, onMouseEnter, onMouseLeave, isSelected }: BuildingCardProps) {
   const photoUrl = building.photos?.[0]?.thumbnails?.large?.url || building.photos?.[0]?.url;
 
   return (
@@ -18,6 +20,8 @@ export default function BuildingCard({ building, onClick, isSelected }: Building
         isSelected ? "ring-2 ring-primary" : ""
       }`}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <CardContent className="p-0">
         {/* Image */}

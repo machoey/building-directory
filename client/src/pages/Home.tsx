@@ -13,6 +13,7 @@ export default function Home() {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+  const [hoveredBuilding, setHoveredBuilding] = useState<Building | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
   
@@ -102,7 +103,7 @@ export default function Home() {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">San Mateo Building Directory</h1>
+              <h1 className="text-2xl font-bold">SF Bay Area Building Directory</h1>
               <p className="text-sm text-muted-foreground">
                 {filteredBuildings.length} {filteredBuildings.length === 1 ? "building" : "buildings"}
               </p>
@@ -219,6 +220,8 @@ export default function Home() {
                       key={building.id}
                       building={building}
                       onClick={() => handleBuildingClick(building)}
+                      onMouseEnter={() => setHoveredBuilding(building)}
+                      onMouseLeave={() => setHoveredBuilding(null)}
                       isSelected={selectedBuilding?.id === building.id}
                     />
                   ))}
@@ -233,6 +236,10 @@ export default function Home() {
           <div className={viewMode === "split" ? "w-1/2" : "flex-1"}>
             <div className="h-[calc(100vh-12rem)]">
               <MapView
+                buildings={filteredBuildings}
+                selectedBuilding={selectedBuilding}
+                hoveredBuilding={hoveredBuilding}
+                onBuildingClick={handleBuildingClick}
                 onMapReady={(map: google.maps.Map) => {
                   // Center on San Mateo County
                   map.setCenter({ lat: 37.5630, lng: -122.3255 });

@@ -31,6 +31,8 @@ interface AirtableRecord {
       };
     }>;
     "Photo Credits"?: string;
+    "Latitude"?: number;
+    "Longitude"?: number;
   };
 }
 
@@ -65,5 +67,7 @@ export async function fetchBuildings(): Promise<Building[]> {
     amenities: record.fields["Amenities"],
     photos: record.fields["Photos"],
     photoCredits: record.fields["Photo Credits"],
+    latitude: record.fields["Latitude"],
+    longitude: record.fields["Longitude"],
   }));
 }

@@ -24,4 +24,6 @@ export interface Building {
     };
   }>;
   photoCredits?: string;
+  latitude?: number;
+  longitude?: number;
 }

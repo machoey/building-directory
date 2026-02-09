@@ -76,7 +76,7 @@
 
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
 
@@ -109,10 +109,16 @@ function loadMapScript() {
   });
 }
 
+import type { Building } from "@/types/building";
+
 interface MapViewProps {
   className?: string;
   initialCenter?: google.maps.LatLngLiteral;
   initialZoom?: number;
+  buildings?: Building[];
+  selectedBuilding?: Building | null;
+  hoveredBuilding?: Building | null;
+  onBuildingClick?: (building: Building) => void;
   onMapReady?: (map: google.maps.Map) => void;
 }
 
@@ -120,10 +126,15 @@ export function MapView({
   className,
   initialCenter = { lat: 37.7749, lng: -122.4194 },
   initialZoom = 12,
+  buildings = [],
+  selectedBuilding,
+  hoveredBuilding,
+  onBuildingClick,
   onMapReady,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
+  const markers = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
 
   const init = usePersistFn(async () => {
     await loadMapScript();
@@ -148,6 +159,61 @@ export function MapView({
   useEffect(() => {
     init();
   }, [init]);
+
+  // Create markers for buildings
+  useEffect(() => {
+    if (!map.current || !window.google || buildings.length === 0) return;
+
+    // Clear existing markers
+    markers.current.forEach(marker => marker.map = null);
+    markers.current.clear();
+
+    // Create new markers
+    buildings.forEach(building => {
+      if (!building.latitude || !building.longitude) return;
+
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
+        map: map.current!,
+        position: { lat: building.latitude, lng: building.longitude },
+        title: building.name,
+      });
+
+      // Add click listener
+      marker.addListener("click", () => {
+        if (onBuildingClick) onBuildingClick(building);
+      });
+
+      markers.current.set(building.id, marker);
+    });
+  }, [buildings, onBuildingClick]);
+
+  // Highlight hovered building
+  useEffect(() => {
+    if (!map.current || !window.google) return;
+
+    markers.current.forEach((marker, buildingId) => {
+      const isHovered = hoveredBuilding?.id === buildingId;
+      const isSelected = selectedBuilding?.id === buildingId;
+      
+      // Create custom marker content with styling
+      const content = document.createElement("div");
+      content.style.width = isHovered || isSelected ? "16px" : "12px";
+      content.style.height = isHovered || isSelected ? "16px" : "12px";
+      content.style.borderRadius = "50%";
+      content.style.backgroundColor = isSelected ? "#2563eb" : isHovered ? "#3b82f6" : "#ef4444";
+      content.style.border = "2px solid white";
+      content.style.boxShadow = "0 2px 4px rgba(0,0,0,0.3)";
+      content.style.transition = "all 0.2s ease";
+      content.style.cursor = "pointer";
+      
+      marker.content = content;
+
+      // Pan to hovered building
+      if (isHovered && hoveredBuilding?.latitude && hoveredBuilding?.longitude) {
+        map.current!.panTo({ lat: hoveredBuilding.latitude, lng: hoveredBuilding.longitude });
+      }
+    });
+  }, [hoveredBuilding, selectedBuilding]);
 
   return (
     <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />
