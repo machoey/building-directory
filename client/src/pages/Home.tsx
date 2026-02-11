@@ -5,7 +5,8 @@ import BuildingCard from "@/components/BuildingCard";
 import BuildingDetail from "@/components/BuildingDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MapIcon, List, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, MapIcon, List, X, Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MapView } from "@/components/Map";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -25,6 +26,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
   
   // Filters
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
   const [selectedDecade, setSelectedDecade] = useState<number | null>(null);
@@ -82,19 +84,35 @@ export default function Home() {
   // Filtered buildings
   const filteredBuildings = useMemo(() => {
     return buildings.filter((building) => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = building.name?.toLowerCase().includes(query);
+        const matchesAddress = building.address?.toLowerCase().includes(query);
+        if (!matchesName && !matchesAddress) {
+          return false;
+        }
+      }
+      
+      // City filter
       if (selectedCity && building.city !== selectedCity) {
         return false;
       }
+      
+      // Neighborhood filter
       if (selectedNeighborhood && building.neighborhood !== selectedNeighborhood) {
         return false;
       }
+      
+      // Decade filter
       if (selectedDecade && building.yearBuilt) {
         const decade = Math.floor(building.yearBuilt / 10) * 10;
         if (decade !== selectedDecade) return false;
       }
+      
       return true;
     });
-  }, [buildings, selectedCity, selectedNeighborhood, selectedDecade]);
+  }, [buildings, searchQuery, selectedCity, selectedNeighborhood, selectedDecade]);
 
   const handleBuildingClick = (building: Building) => {
     setSelectedBuilding(building);
@@ -102,12 +120,13 @@ export default function Home() {
   };
 
   const clearFilters = () => {
+    setSearchQuery("");
     setSelectedCity(null);
     setSelectedNeighborhood(null);
     setSelectedDecade(null);
   };
 
-  const hasFilters = selectedCity || selectedNeighborhood || selectedDecade;
+  const hasFilters = searchQuery || selectedCity || selectedNeighborhood || selectedDecade;
 
   if (loading) {
     return (
@@ -200,6 +219,22 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Search Bar */}
+      <div className="border-b bg-background">
+        <div className="container py-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search buildings by name or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="border-b bg-muted/30">
