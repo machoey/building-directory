@@ -51,14 +51,23 @@ export default function Home() {
     return Array.from(unique).sort();
   }, [buildings]);
 
-  // Get unique neighborhoods
-  const neighborhoods = useMemo(() => {
-    const unique = new Set(
-      buildings
-        .map((b) => b.neighborhood)
-        .filter((n): n is string => Boolean(n))
-    );
-    return Array.from(unique).sort();
+  // Get neighborhoods grouped by city
+  const neighborhoodsByCity = useMemo(() => {
+    const grouped: Record<string, Set<string>> = {};
+    buildings.forEach((b) => {
+      if (b.city && b.neighborhood) {
+        if (!grouped[b.city]) {
+          grouped[b.city] = new Set();
+        }
+        grouped[b.city].add(b.neighborhood);
+      }
+    });
+    // Convert to sorted arrays
+    const result: Record<string, string[]> = {};
+    Object.keys(grouped).sort().forEach((city) => {
+      result[city] = Array.from(grouped[city]).sort();
+    });
+    return result;
   }, [buildings]);
 
   // Get decades
@@ -216,21 +225,30 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Neighborhood Filter */}
-            <div className="flex flex-wrap gap-2">
-              {neighborhoods.map((neighborhood) => (
-                <Badge
-                  key={neighborhood}
-                  variant={selectedNeighborhood === neighborhood ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() =>
-                    setSelectedNeighborhood(
-                      selectedNeighborhood === neighborhood ? null : neighborhood
-                    )
-                  }
-                >
-                  {neighborhood}
-                </Badge>
+            {/* Neighborhood Filter - Grouped by City */}
+            <div className="w-full">
+              {Object.entries(neighborhoodsByCity).map(([city, neighborhoods]) => (
+                <details key={city} className="mb-2" open={selectedCity === city}>
+                  <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground mb-2">
+                    {city} ({neighborhoods.length})
+                  </summary>
+                  <div className="flex flex-wrap gap-2 ml-4">
+                    {neighborhoods.map((neighborhood) => (
+                      <Badge
+                        key={neighborhood}
+                        variant={selectedNeighborhood === neighborhood ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() =>
+                          setSelectedNeighborhood(
+                            selectedNeighborhood === neighborhood ? null : neighborhood
+                          )
+                        }
+                      >
+                        {neighborhood}
+                      </Badge>
+                    ))}
+                  </div>
+                </details>
               ))}
             </div>
 
