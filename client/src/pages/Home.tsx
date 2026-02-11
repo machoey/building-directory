@@ -27,6 +27,7 @@ export default function Home() {
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
   const [selectedDecade, setSelectedDecade] = useState<number | null>(null);
@@ -124,6 +125,25 @@ export default function Home() {
     setSelectedCity(null);
     setSelectedNeighborhood(null);
     setSelectedDecade(null);
+  };
+
+  // Search suggestions
+  const suggestions = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2) return [];
+    
+    const query = searchQuery.toLowerCase();
+    return buildings
+      .filter((building) => {
+        const matchesName = building.name?.toLowerCase().includes(query);
+        const matchesAddress = building.address?.toLowerCase().includes(query);
+        return matchesName || matchesAddress;
+      })
+      .slice(0, 8); // Limit to 8 suggestions
+  }, [buildings, searchQuery]);
+
+  const handleSuggestionClick = (building: Building) => {
+    setSearchQuery(building.name || "");
+    setShowSuggestions(false);
   };
 
   const hasFilters = searchQuery || selectedCity || selectedNeighborhood || selectedDecade;
@@ -224,14 +244,38 @@ export default function Home() {
       <div className="border-b bg-background">
         <div className="container py-4">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <Input
               type="text"
               placeholder="Search buildings by name or address..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               className="pl-10"
             />
+            
+            {/* Autocomplete Suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
+                {suggestions.map((building) => (
+                  <button
+                    key={building.id}
+                    onClick={() => handleSuggestionClick(building)}
+                    className="w-full px-4 py-3 text-left hover:bg-muted transition-colors border-b last:border-b-0 flex flex-col gap-1"
+                  >
+                    <div className="font-medium text-sm">{building.name}</div>
+                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                      <span>{building.address}</span>
+                      {building.city && <span>• {building.city}</span>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
