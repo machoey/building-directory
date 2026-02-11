@@ -78,7 +78,7 @@ export function MapView({
         title: building.name,
       });
 
-      // Add hover listener to show info window
+      // Add hover listener using Google Maps API event system
       marker.addListener("mouseover", () => {
         // Create info window if it doesn't exist
         if (!infoWindow.current) {
