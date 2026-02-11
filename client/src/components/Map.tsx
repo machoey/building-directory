@@ -179,8 +179,8 @@ export function MapView({
         title: building.name,
       });
 
-      // Add click listener to show info window
-      marker.addListener("click", () => {
+      // Add hover listener to show info window
+      marker.addListener("mouseover", () => {
         // Create info window if it doesn't exist
         if (!infoWindow.current) {
           infoWindow.current = new window.google.maps.InfoWindow();
@@ -212,8 +212,17 @@ export function MapView({
           anchor: marker,
           map: map.current!,
         });
+      });
 
-        // Also trigger the building click handler
+      // Add mouseout listener to close info window
+      marker.addListener("mouseout", () => {
+        if (infoWindow.current) {
+          infoWindow.current.close();
+        }
+      });
+
+      // Add click listener to open detail modal
+      marker.addListener("click", () => {
         if (onBuildingClick) onBuildingClick(building);
       });
 
