@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Building, updateBuilding } from '@/lib/airtable';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { verifyWithAssessor } from '@/lib/countyAssessor';
 
 interface BuildingEditDialogProps {
   building: Building | null;
@@ -18,6 +19,7 @@ interface BuildingEditDialogProps {
 export function BuildingEditDialog({ building, open, onOpenChange, onSave }: BuildingEditDialogProps) {
   const [formData, setFormData] = useState<Partial<Building>>({});
   const [saving, setSaving] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (building) {
@@ -43,6 +45,42 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
   if (!building.totalUnits) missingFields.push('Total Units');
   if (!building.yearBuilt) missingFields.push('Year Built');
   if (!building.photos?.[0]) missingFields.push('Photo');
+
+  const handleVerify = async () => {
+    if (!formData.address || !formData.city || !formData.state) {
+      toast.error('Address, city, and state are required for verification');
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const assessorData = await verifyWithAssessor(
+        formData.address,
+        formData.city,
+        formData.state
+      );
+
+      // Update form with verified data
+      setFormData({
+        ...formData,
+        address: assessorData.address || formData.address,
+        city: assessorData.city || formData.city,
+        state: assessorData.state || formData.state,
+        latitude: assessorData.latitude || formData.latitude,
+        longitude: assessorData.longitude || formData.longitude,
+      });
+
+      toast.success(
+        `Address verified! ${assessorData.notes}`,
+        { duration: 5000 }
+      );
+    } catch (error) {
+      toast.error('Failed to verify address with county assessor');
+      console.error(error);
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -75,8 +113,13 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
         )}
 
         <div className="flex gap-2 mb-4">
-          <Button variant="outline" size="sm" disabled>
-            Verify with County Assessor
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleVerify}
+            disabled={verifying || !formData.address || !formData.city}
+          >
+            {verifying ? 'Verifying...' : 'Verify with County Assessor'}
           </Button>
           <Button variant="outline" size="sm" disabled>
             Update Photo
