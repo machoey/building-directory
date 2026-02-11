@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Building } from "@/types/building";
-import { Building2, MapPin, Calendar, Users } from "lucide-react";
+import { Building2, MapPin, Calendar, Users, Edit } from "lucide-react";
+import { useAdmin } from "@/contexts/AdminContext";
 
 interface BuildingCardProps {
   building: Building;
@@ -9,10 +11,17 @@ interface BuildingCardProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   isSelected: boolean;
+  onEdit?: (building: Building) => void;
 }
 
-export default function BuildingCard({ building, onClick, onMouseEnter, onMouseLeave, isSelected }: BuildingCardProps) {
+export default function BuildingCard({ building, onClick, onMouseEnter, onMouseLeave, isSelected, onEdit }: BuildingCardProps) {
+  const { isAdmin } = useAdmin();
   const photoUrl = building.photos?.[0]?.thumbnails?.large?.url || building.photos?.[0]?.url;
+  
+  const missingFields = [];
+  if (!building.totalUnits) missingFields.push('units');
+  if (!building.yearBuilt) missingFields.push('year');
+  if (!photoUrl) missingFields.push('photo');
 
   return (
     <Card
@@ -41,6 +50,20 @@ export default function BuildingCard({ building, onClick, onMouseEnter, onMouseL
             <Badge className="absolute top-2 right-2" variant="secondary">
               {building.status}
             </Badge>
+          )}
+          {isAdmin && onEdit && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute bottom-2 right-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(building);
+              }}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              Edit
+            </Button>
           )}
         </div>
 
@@ -73,6 +96,12 @@ export default function BuildingCard({ building, onClick, onMouseEnter, onMouseL
           {building.neighborhood && (
             <Badge variant="outline" className="text-xs">
               {building.neighborhood}
+            </Badge>
+          )}
+          
+          {isAdmin && missingFields.length > 0 && (
+            <Badge variant="destructive" className="text-xs">
+              ⚠️ Missing: {missingFields.join(', ')}
             </Badge>
           )}
         </div>

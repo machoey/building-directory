@@ -8,6 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, MapIcon, List, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MapView } from "@/components/Map";
+import { useAdmin } from "@/contexts/AdminContext";
+import { AdminToolbar } from "@/components/AdminToolbar";
+import { AdminLoginDialog } from "@/components/AdminLoginDialog";
+import { BuildingEditDialog } from "@/components/BuildingEditDialog";
+
+
 
 export default function Home() {
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -21,6 +27,11 @@ export default function Home() {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
   const [selectedDecade, setSelectedDecade] = useState<number | null>(null);
+  const { isAdmin, setShowLoginDialog } = useAdmin();
+  const [editingBuilding, setEditingBuilding] = useState<Building | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+
 
   useEffect(() => {
     fetchBuildings()
@@ -96,8 +107,39 @@ export default function Home() {
     );
   }
 
+  const handleEdit = (building: Building) => {
+    setEditingBuilding(building);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    // Refresh buildings list
+    fetchBuildings()
+      .then(setBuildings)
+      .catch(console.error);
+  };
+
+  const handleAddBuilding = () => {
+    if (!isAdmin) {
+      setShowLoginDialog(true);
+    } else {
+      setAddDialogOpen(true);
+    }
+  };
+
+  const handleSaveNewBuilding = () => {
+    // Refresh buildings list
+    fetchBuildings()
+      .then(setBuildings)
+      .catch(console.error);
+    setAddDialogOpen(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Admin Toolbar */}
+      <AdminToolbar buildings={buildings} />
+      
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
         <div className="container py-4">
@@ -111,6 +153,15 @@ export default function Home() {
 
             {/* View Mode Toggle */}
             <div className="flex gap-2">
+              {!isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowLoginDialog(true)}
+                >
+                  Admin
+                </Button>
+              )}
               <Button
                 variant={viewMode === "list" ? "default" : "outline"}
                 size="sm"
@@ -223,6 +274,7 @@ export default function Home() {
                       onMouseEnter={() => setHoveredBuilding(building)}
                       onMouseLeave={() => setHoveredBuilding(null)}
                       isSelected={selectedBuilding?.id === building.id}
+                      onEdit={handleEdit}
                     />
                   ))}
                 </div>
@@ -256,6 +308,15 @@ export default function Home() {
         building={selectedBuilding}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+      />
+      
+      {/* Admin Dialogs */}
+      <AdminLoginDialog />
+      <BuildingEditDialog
+        building={editingBuilding}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSave={handleSaveEdit}
       />
     </div>
   );
