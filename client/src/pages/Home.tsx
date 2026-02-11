@@ -12,6 +12,7 @@ import { useAdmin } from "@/contexts/AdminContext";
 import { AdminToolbar } from "@/components/AdminToolbar";
 import { AdminLoginDialog } from "@/components/AdminLoginDialog";
 import { BuildingEditDialog } from "@/components/BuildingEditDialog";
+import { AddBuildingDialog } from "@/components/AddBuildingDialog";
 
 
 
@@ -303,6 +304,17 @@ export default function Home() {
         )}
       </div>
 
+      {/* Floating Add Button (Admin Only) */}
+      {isAdmin && (
+        <Button
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+          size="icon"
+          onClick={() => setAddDialogOpen(true)}
+        >
+          <span className="text-2xl">+</span>
+        </Button>
+      )}
+
       {/* Building Detail Modal */}
       <BuildingDetail
         building={selectedBuilding}
@@ -316,6 +328,11 @@ export default function Home() {
         building={editingBuilding}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
+        onSave={handleSaveEdit}
+      />
+      <AddBuildingDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
         onSave={handleSaveEdit}
       />
     </div>
