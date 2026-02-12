@@ -72,10 +72,30 @@ export function MapView({
     buildings.forEach((building) => {
       if (!building.latitude || !building.longitude) return;
 
+      // Create a smaller custom pin element
+      const pinElement = document.createElement('div');
+      pinElement.style.width = '12px';
+      pinElement.style.height = '12px';
+      pinElement.style.backgroundColor = '#dc2626';
+      pinElement.style.borderRadius = '50%';
+      pinElement.style.border = '2px solid white';
+      pinElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+      pinElement.style.cursor = 'pointer';
+      pinElement.style.transition = 'transform 0.2s';
+      
+      // Add hover effect
+      pinElement.addEventListener('mouseenter', () => {
+        pinElement.style.transform = 'scale(1.3)';
+      });
+      pinElement.addEventListener('mouseleave', () => {
+        pinElement.style.transform = 'scale(1)';
+      });
+
       const marker = new window.google.maps.marker.AdvancedMarkerElement({
         map: map.current!,
         position: { lat: building.latitude, lng: building.longitude },
         title: building.name,
+        content: pinElement,
       });
 
       // Add hover listener using Google Maps API event system
