@@ -6,7 +6,7 @@ import BuildingDetail from "@/components/BuildingDetail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Loader2, MapIcon, List, X, Search } from "lucide-react";
+import { Loader2, MapIcon, List, X, Search, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MapView } from "@/components/Map";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -277,6 +277,16 @@ export default function Home() {
                 <MapIcon className="h-4 w-4 mr-2" />
                 Map
               </Button>
+              {isAdmin && (
+                <Button
+                  size="sm"
+                  onClick={() => setAddDialogOpen(true)}
+                  className="ml-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Building
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -513,16 +523,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Floating Add Button (Admin Only) */}
-      {isAdmin && (
-        <Button
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
-          size="icon"
-          onClick={() => setAddDialogOpen(true)}
-        >
-          <span className="text-2xl">+</span>
-        </Button>
-      )}
+
 
       {/* Building Detail Modal */}
       <BuildingDetail
