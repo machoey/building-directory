@@ -139,7 +139,25 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateBuilding(building.id, formData);
+      // Track which fields were manually edited
+      const updatedData = { ...formData };
+      
+      // If HOA fee was edited, update the last updated date and source
+      if (formData.hoaMonthlyFee !== building.hoaMonthlyFee) {
+        updatedData.hoaLastUpdated = new Date().toISOString().split('T')[0];
+        updatedData.dataSources = building.dataSources 
+          ? `${building.dataSources}, User Provided` 
+          : 'User Provided';
+      }
+      
+      // If units or year built were edited, note it was user provided
+      if (formData.totalUnits !== building.totalUnits || formData.yearBuilt !== building.yearBuilt) {
+        updatedData.dataSources = building.dataSources 
+          ? `${building.dataSources}, User Provided` 
+          : 'User Provided';
+      }
+      
+      await updateBuilding(building.id, updatedData);
       toast.success('Building updated successfully');
       onSave();
       onOpenChange(false);

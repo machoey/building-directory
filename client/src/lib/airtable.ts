@@ -35,6 +35,11 @@ interface AirtableRecord {
     "Photo Credits"?: string;
     "Latitude"?: number;
     "Longitude"?: number;
+    "Data Sources"?: string;
+    "HOA Last Updated"?: string;
+    "Assessor Year Built"?: number;
+    "Assessor Total Units"?: number;
+    "Assessor Source URL"?: string;
   };
 }
 
@@ -100,6 +105,11 @@ export async function fetchBuildings(
     photoCredits: record.fields["Photo Credits"],
     latitude: record.fields["Latitude"],
     longitude: record.fields["Longitude"],
+    dataSources: record.fields["Data Sources"],
+    hoaLastUpdated: record.fields["HOA Last Updated"],
+    assessorYearBuilt: record.fields["Assessor Year Built"],
+    assessorTotalUnits: record.fields["Assessor Total Units"],
+    assessorSourceUrl: record.fields["Assessor Source URL"],
   }));
 }
 
@@ -119,6 +129,11 @@ export async function updateBuilding(id: string, data: Partial<Building>): Promi
   if (data.hoaMonthlyFee !== undefined) fields["HOA Monthly Fee"] = data.hoaMonthlyFee;
   if (data.latitude !== undefined) fields["Latitude"] = data.latitude;
   if (data.longitude !== undefined) fields["Longitude"] = data.longitude;
+  if (data.dataSources !== undefined) fields["Data Sources"] = data.dataSources;
+  if (data.hoaLastUpdated !== undefined) fields["HOA Last Updated"] = data.hoaLastUpdated;
+  if (data.assessorYearBuilt !== undefined) fields["Assessor Year Built"] = data.assessorYearBuilt;
+  if (data.assessorTotalUnits !== undefined) fields["Assessor Total Units"] = data.assessorTotalUnits;
+  if (data.assessorSourceUrl !== undefined) fields["Assessor Source URL"] = data.assessorSourceUrl;
 
   const response = await fetch(url, {
     method: 'PATCH',

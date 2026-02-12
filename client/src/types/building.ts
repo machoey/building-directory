@@ -26,4 +26,10 @@ export interface Building {
   photoCredits?: string;
   latitude?: number;
   longitude?: number;
+  // Data source tracking
+  dataSources?: string;
+  hoaLastUpdated?: string;
+  assessorYearBuilt?: number;
+  assessorTotalUnits?: number;
+  assessorSourceUrl?: string;
 }

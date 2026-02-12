@@ -91,10 +91,16 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
       if (formData.totalUnits) airtableData["Total Units"] = parseInt(formData.totalUnits);
       if (formData.yearBuilt) airtableData["Year Built"] = parseInt(formData.yearBuilt);
       if (formData.neighborhood) airtableData["Neighborhood/District"] = formData.neighborhood;
-      if (formData.hoaMonthlyFee) airtableData["HOA Monthly Fee"] = parseFloat(formData.hoaMonthlyFee);
+      if (formData.hoaMonthlyFee) {
+        airtableData["HOA Monthly Fee"] = parseFloat(formData.hoaMonthlyFee);
+        airtableData["HOA Last Updated"] = new Date().toISOString().split('T')[0];
+      }
       if (formData.notes) airtableData["Notes"] = formData.notes;
       if (formData.latitude) airtableData["Latitude"] = parseFloat(formData.latitude);
       if (formData.longitude) airtableData["Longitude"] = parseFloat(formData.longitude);
+      
+      // Track that this data was manually provided by admin
+      airtableData["Data Sources"] = "User Provided";
       
       if (photoUrl) {
         airtableData["Photo"] = [{ url: photoUrl }];
