@@ -331,6 +331,17 @@ export default function Home() {
             >
               Menlo Park Only
             </Button>
+            <Button
+              variant={quickFilter === "San Francisco" || selectedCity === "San Francisco" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setQuickFilter("San Francisco");
+                setSelectedCity("San Francisco");
+                setLoading(true);
+              }}
+            >
+              San Francisco Only
+            </Button>
             {loading && loadingProgress.loaded > 0 && (
               <span className="text-sm text-muted-foreground ml-auto">
                 Loading {loadingProgress.loaded} buildings...
