@@ -20,6 +20,8 @@ import { AddBuildingDialog } from "@/components/AddBuildingDialog";
 export default function Home() {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState({ loaded: 0, total: 0 });
+  const [quickFilter, setQuickFilter] = useState<string | null>("San Mateo");
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [hoveredBuilding, setHoveredBuilding] = useState<Building | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -39,11 +41,18 @@ export default function Home() {
 
 
   useEffect(() => {
-    fetchBuildings()
+    const cityFilter = quickFilter || selectedCity || undefined;
+    
+    fetchBuildings({
+      city: cityFilter,
+      onProgress: (loaded, total) => {
+        setLoadingProgress({ loaded, total });
+      },
+    })
       .then(setBuildings)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [quickFilter, selectedCity]);
 
   // Get unique cities
   const cities = useMemo(() => {
@@ -193,8 +202,9 @@ export default function Home() {
   };
 
   const handleSaveEdit = () => {
-    // Refresh buildings list
-    fetchBuildings()
+    // Refresh buildings list with current filter
+    const cityFilter = quickFilter || selectedCity || undefined;
+    fetchBuildings({ city: cityFilter })
       .then(setBuildings)
       .catch(console.error);
   };
@@ -208,8 +218,9 @@ export default function Home() {
   };
 
   const handleSaveNewBuilding = () => {
-    // Refresh buildings list
-    fetchBuildings()
+    // Refresh buildings list with current filter
+    const cityFilter = quickFilter || selectedCity || undefined;
+    fetchBuildings({ city: cityFilter })
       .then(setBuildings)
       .catch(console.error);
     setAddDialogOpen(false);
@@ -270,6 +281,64 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Quick Region Filters */}
+      <div className="border-b bg-muted/50">
+        <div className="container py-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-muted-foreground">Quick Filters:</span>
+            <Button
+              variant={!quickFilter && !selectedCity ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setQuickFilter(null);
+                setSelectedCity(null);
+                setLoading(true);
+              }}
+            >
+              All Buildings
+            </Button>
+            <Button
+              variant={quickFilter === "San Mateo" || selectedCity === "San Mateo" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setQuickFilter("San Mateo");
+                setSelectedCity("San Mateo");
+                setLoading(true);
+              }}
+            >
+              San Mateo Only
+            </Button>
+            <Button
+              variant={quickFilter === "Burlingame" || selectedCity === "Burlingame" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setQuickFilter("Burlingame");
+                setSelectedCity("Burlingame");
+                setLoading(true);
+              }}
+            >
+              Burlingame Only
+            </Button>
+            <Button
+              variant={quickFilter === "Menlo Park" || selectedCity === "Menlo Park" ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setQuickFilter("Menlo Park");
+                setSelectedCity("Menlo Park");
+                setLoading(true);
+              }}
+            >
+              Menlo Park Only
+            </Button>
+            {loading && loadingProgress.loaded > 0 && (
+              <span className="text-sm text-muted-foreground ml-auto">
+                Loading {loadingProgress.loaded} buildings...
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Search Bar */}
       <div className="border-b bg-background">

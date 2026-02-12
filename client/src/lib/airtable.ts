@@ -38,15 +38,28 @@ interface AirtableRecord {
   };
 }
 
-export async function fetchBuildings(): Promise<Building[]> {
+export async function fetchBuildings(
+  options?: {
+    city?: string;
+    onProgress?: (loaded: number, total: number) => void;
+  }
+): Promise<Building[]> {
   let allRecords: AirtableRecord[] = [];
   let offset: string | undefined = undefined;
+  let pageCount = 0;
   
   // Fetch all pages from Airtable
   do {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}${
-      offset ? `?offset=${offset}` : ''
-    }`;
+    pageCount++;
+    let url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}`;
+    const params = new URLSearchParams();
+    
+    if (offset) params.append('offset', offset);
+    if (options?.city) {
+      params.append('filterByFormula', `{City} = "${options.city}"`);
+    }
+    
+    if (params.toString()) url += `?${params.toString()}`;
     
     const response = await fetch(url, {
       headers: {
@@ -61,6 +74,11 @@ export async function fetchBuildings(): Promise<Building[]> {
     const data = await response.json();
     const records: AirtableRecord[] = data.records || [];
     allRecords = allRecords.concat(records);
+    
+    // Report progress
+    if (options?.onProgress) {
+      options.onProgress(allRecords.length, allRecords.length + (data.offset ? 100 : 0));
+    }
     
     offset = data.offset; // Will be undefined when no more pages
   } while (offset);
