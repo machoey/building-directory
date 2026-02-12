@@ -99,8 +99,8 @@ export function MapView({
         content: pinElement,
       });
 
-      // Add hover listener using Google Maps API event system
-      marker.addListener("mouseover", () => {
+      // Add click listener to show info window anchored to marker
+      marker.addListener("click", () => {
         // Create info window if it doesn't exist
         if (!infoWindow.current) {
           infoWindow.current = new window.google.maps.InfoWindow();
@@ -109,30 +109,25 @@ export function MapView({
         // Build info window content with photo thumbnail
         const photoUrl = building.photoUrl || building.photo || '';
         const contentString = `
-          <div style="padding: 0; max-width: 320px; font-family: system-ui, -apple-system, sans-serif;">
+          <div style="padding: 0; max-width: 340px; font-family: system-ui, -apple-system, sans-serif;">
             ${photoUrl ? `
-              <div style="width: 100%; height: 160px; overflow: hidden; border-radius: 8px 8px 0 0;">
+              <div style="width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0;">
                 <img src="${photoUrl}" alt="${building.name || 'Building'}" 
                      style="width: 100%; height: 100%; object-fit: cover;" 
                      onerror="this.parentElement.style.display='none'" />
               </div>
             ` : ''}
-            <div style="padding: 12px;">
-              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937;">${building.name || 'Unknown Building'}</h3>
-              <div style="font-size: 14px; color: #6b7280; line-height: 1.6;">
-                ${building.address ? `<p style="margin: 4px 0; display: flex; align-items: start;"><span style="margin-right: 4px;">📍</span><span>${building.address.length > 50 ? building.address.substring(0, 50) + '...' : building.address}</span></p>` : ''}
-                ${building.totalUnits ? `<p style="margin: 4px 0;"><strong>Units:</strong> ${building.totalUnits}</p>` : ''}
-                ${building.yearBuilt ? `<p style="margin: 4px 0;"><strong>Built:</strong> ${building.yearBuilt}</p>` : ''}
-                ${building.hoaMonthlyFee ? `<p style="margin: 4px 0;"><strong>HOA:</strong> $${typeof building.hoaMonthlyFee === 'number' ? building.hoaMonthlyFee.toLocaleString() : building.hoaMonthlyFee}/month</p>` : ''}
+            <div style="padding: 16px;">
+              <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 600; color: #1f2937; line-height: 1.3;">${building.name || 'Unknown Building'}</h3>
+              <div style="font-size: 14px; color: #4b5563; line-height: 1.7;">
+                ${building.address ? `<p style="margin: 6px 0; display: flex; align-items: start;"><span style="margin-right: 6px; font-size: 16px;">📍</span><span>${building.address}</span></p>` : ''}
+                ${building.city ? `<p style="margin: 6px 0; padding-left: 22px; color: #6b7280;">${building.city}${building.state ? ', ' + building.state : ''}</p>` : ''}
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                  ${building.totalUnits ? `<p style="margin: 6px 0;"><strong style="color: #374151;">Units:</strong> ${building.totalUnits}</p>` : ''}
+                  ${building.yearBuilt ? `<p style="margin: 6px 0;"><strong style="color: #374151;">Built:</strong> ${building.yearBuilt}</p>` : ''}
+                  ${building.hoaMonthlyFee ? `<p style="margin: 6px 0;"><strong style="color: #374151;">HOA Fee:</strong> $${typeof building.hoaMonthlyFee === 'number' ? building.hoaMonthlyFee.toLocaleString() : building.hoaMonthlyFee}/month</p>` : ''}
+                </div>
               </div>
-              <button 
-                onclick="window.dispatchEvent(new CustomEvent('building-detail-click', { detail: '${building.id}' }))"
-                style="margin-top: 12px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; width: 100%; transition: background 0.2s;"
-                onmouseover="this.style.background='#1d4ed8'"
-                onmouseout="this.style.background='#2563eb'"
-              >
-                View Full Details →
-              </button>
             </div>
           </div>
         `;
@@ -142,18 +137,6 @@ export function MapView({
           anchor: marker,
           map: map.current!,
         });
-      });
-
-      // Add mouseout listener to close info window
-      marker.addListener("mouseout", () => {
-        if (infoWindow.current) {
-          infoWindow.current.close();
-        }
-      });
-
-      // Add click listener to open detail modal
-      marker.addListener("click", () => {
-        if (onBuildingClick) onBuildingClick(building);
       });
 
       markers.current.set(building.id, marker);
@@ -207,23 +190,9 @@ export function MapView({
       });
     }
 
-    // Listen for custom event from info window button
-    const handleBuildingDetailClick = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      const buildingId = customEvent.detail;
-      const building = buildings.find((b) => b.id === buildingId);
-      if (building && onBuildingClick) {
-        onBuildingClick(building);
-      }
-    };
-
-    window.addEventListener("building-detail-click", handleBuildingDetailClick);
-
+    // Cleanup function
     return () => {
-      window.removeEventListener(
-        "building-detail-click",
-        handleBuildingDetailClick
-      );
+      // Clean up markers and clusterer on unmount
     };
   }, [buildings, onBuildingClick]);
 

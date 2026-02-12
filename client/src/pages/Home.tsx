@@ -236,7 +236,7 @@ export default function Home() {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">SF Bay Area Building Directory</h1>
+              <h1 className="text-2xl font-bold">BuildingIQ</h1>
               <p className="text-sm text-muted-foreground">
                 {filteredBuildings.length} {filteredBuildings.length === 1 ? "building" : "buildings"}
               </p>
