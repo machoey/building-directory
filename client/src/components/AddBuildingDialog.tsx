@@ -27,6 +27,7 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
     notes: "",
     latitude: "",
     longitude: "",
+    photoCredits: "",
   });
 
   const handleChange = (field: string, value: string) => {
@@ -104,7 +105,8 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
       
       if (photoUrl) {
         airtableData["Photo"] = [{ url: photoUrl }];
-        airtableData["Photo Credits"] = "© Google Street View";
+        // Use user-provided credits or default to Street View
+        airtableData["Photo Credits"] = formData.photoCredits || "© Google Street View";
       }
 
       // Add to Airtable
@@ -277,6 +279,19 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
                 onChange={(e) => handleChange("longitude", e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="photoCredits">Photo Credits (Optional)</Label>
+            <Input
+              id="photoCredits"
+              value={formData.photoCredits}
+              onChange={(e) => handleChange("photoCredits", e.target.value)}
+              placeholder="e.g., Photo courtesy of Jane Smith, Compass Real Estate"
+            />
+            <p className="text-xs text-muted-foreground">
+              If uploading MLS photo, include agent and brokerage. Leave blank for auto-generated Street View.
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

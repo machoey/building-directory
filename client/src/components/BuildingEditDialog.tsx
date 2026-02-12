@@ -38,6 +38,7 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
         notes: building.notes || '',
         latitude: building.latitude,
         longitude: building.longitude,
+        photoCredits: building.photoCredits || '',
       });
     }
   }, [building]);
@@ -377,6 +378,19 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
                 value={formData.longitude || ''}
                 onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || undefined })}
               />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="photoCredits">Photo Credits</Label>
+              <Input
+                id="photoCredits"
+                value={formData.photoCredits || ''}
+                onChange={(e) => setFormData({ ...formData, photoCredits: e.target.value })}
+                placeholder="e.g., Photo courtesy of Jane Smith, Compass Real Estate"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                If using MLS photo, include agent and brokerage name. For Street View, use "© Google Street View".
+              </p>
             </div>
           </div>
 
