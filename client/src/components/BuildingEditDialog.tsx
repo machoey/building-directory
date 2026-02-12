@@ -8,6 +8,7 @@ import { Building, updateBuilding } from '@/lib/airtable';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { verifyWithAssessor } from '@/lib/countyAssessor';
+import { Flag, Loader2 } from 'lucide-react';
 
 interface BuildingEditDialogProps {
   building: Building | null;
@@ -20,6 +21,8 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
   const [formData, setFormData] = useState<Partial<Building>>({});
   const [saving, setSaving] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [flaggedFields, setFlaggedFields] = useState<Set<string>>(new Set());
+  const [correctingField, setCorrectingField] = useState<string | null>(null);
 
   useEffect(() => {
     if (building) {
@@ -79,6 +82,57 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
       console.error(error);
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const toggleFlag = (fieldName: string) => {
+    const newFlagged = new Set(flaggedFields);
+    if (newFlagged.has(fieldName)) {
+      newFlagged.delete(fieldName);
+    } else {
+      newFlagged.add(fieldName);
+    }
+    setFlaggedFields(newFlagged);
+  };
+
+  const handleAutoCorrect = async (fieldName: string) => {
+    setCorrectingField(fieldName);
+    try {
+      // Import the auto-correct functions
+      const { correctTotalUnits, correctYearBuilt, correctHOAFee, correctNeighborhood } = await import('@/lib/autoCorrect');
+      
+      let suggestion = null;
+      switch (fieldName) {
+        case 'totalUnits':
+          suggestion = await correctTotalUnits(building);
+          break;
+        case 'yearBuilt':
+          suggestion = await correctYearBuilt(building);
+          break;
+        case 'hoaMonthlyFee':
+          suggestion = await correctHOAFee(building);
+          break;
+        case 'neighborhood':
+          suggestion = await correctNeighborhood(building);
+          break;
+      }
+
+      if (suggestion) {
+        toast.info(
+          `${suggestion.reasoning}`,
+          { duration: 8000 }
+        );
+        
+        // Remove flag after showing suggestion
+        const newFlagged = new Set(flaggedFields);
+        newFlagged.delete(fieldName);
+        setFlaggedFields(newFlagged);
+      }
+    } catch (error) {
+      toast.error('Failed to auto-correct field');
+      console.error(error);
+    } finally {
+      setCorrectingField(null);
     }
   };
 
@@ -165,45 +219,113 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
             </div>
 
             <div>
-              <Label htmlFor="totalUnits">
-                Total Units {!building.totalUnits && <Badge variant="destructive" className="ml-2">Missing</Badge>}
+              <Label htmlFor="totalUnits" className="flex items-center justify-between">
+                <span>
+                  Total Units {!building.totalUnits && <Badge variant="destructive" className="ml-2">Missing</Badge>}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => flaggedFields.has('totalUnits') ? handleAutoCorrect('totalUnits') : toggleFlag('totalUnits')}
+                  className={`p-1 rounded hover:bg-gray-100 ${
+                    flaggedFields.has('totalUnits') ? 'text-orange-600' : 'text-gray-400'
+                  }`}
+                  title={flaggedFields.has('totalUnits') ? 'Click to research correction' : 'Flag for review'}
+                >
+                  {correctingField === 'totalUnits' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Flag className="h-4 w-4" fill={flaggedFields.has('totalUnits') ? 'currentColor' : 'none'} />
+                  )}
+                </button>
               </Label>
               <Input
                 id="totalUnits"
                 type="number"
                 value={formData.totalUnits || ''}
                 onChange={(e) => setFormData({ ...formData, totalUnits: parseInt(e.target.value) || undefined })}
+                className={flaggedFields.has('totalUnits') ? 'border-orange-400 bg-orange-50' : ''}
               />
             </div>
 
             <div>
-              <Label htmlFor="yearBuilt">
-                Year Built {!building.yearBuilt && <Badge variant="destructive" className="ml-2">Missing</Badge>}
+              <Label htmlFor="yearBuilt" className="flex items-center justify-between">
+                <span>
+                  Year Built {!building.yearBuilt && <Badge variant="destructive" className="ml-2">Missing</Badge>}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => flaggedFields.has('yearBuilt') ? handleAutoCorrect('yearBuilt') : toggleFlag('yearBuilt')}
+                  className={`p-1 rounded hover:bg-gray-100 ${
+                    flaggedFields.has('yearBuilt') ? 'text-orange-600' : 'text-gray-400'
+                  }`}
+                  title={flaggedFields.has('yearBuilt') ? 'Click to research correction' : 'Flag for review'}
+                >
+                  {correctingField === 'yearBuilt' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Flag className="h-4 w-4" fill={flaggedFields.has('yearBuilt') ? 'currentColor' : 'none'} />
+                  )}
+                </button>
               </Label>
               <Input
                 id="yearBuilt"
                 type="number"
                 value={formData.yearBuilt || ''}
                 onChange={(e) => setFormData({ ...formData, yearBuilt: parseInt(e.target.value) || undefined })}
+                className={flaggedFields.has('yearBuilt') ? 'border-orange-400 bg-orange-50' : ''}
               />
             </div>
 
             <div>
-              <Label htmlFor="neighborhood">Neighborhood/District</Label>
+              <Label htmlFor="neighborhood" className="flex items-center justify-between">
+                <span>Neighborhood/District</span>
+                <button
+                  type="button"
+                  onClick={() => flaggedFields.has('neighborhood') ? handleAutoCorrect('neighborhood') : toggleFlag('neighborhood')}
+                  className={`p-1 rounded hover:bg-gray-100 ${
+                    flaggedFields.has('neighborhood') ? 'text-orange-600' : 'text-gray-400'
+                  }`}
+                  title={flaggedFields.has('neighborhood') ? 'Click to research correction' : 'Flag for review'}
+                >
+                  {correctingField === 'neighborhood' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Flag className="h-4 w-4" fill={flaggedFields.has('neighborhood') ? 'currentColor' : 'none'} />
+                  )}
+                </button>
+              </Label>
               <Input
                 id="neighborhood"
                 value={formData.neighborhood || ''}
                 onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
+                className={flaggedFields.has('neighborhood') ? 'border-orange-400 bg-orange-50' : ''}
               />
             </div>
 
             <div>
-              <Label htmlFor="hoaFee">HOA Monthly Fee</Label>
+              <Label htmlFor="hoaFee" className="flex items-center justify-between">
+                <span>HOA Monthly Fee</span>
+                <button
+                  type="button"
+                  onClick={() => flaggedFields.has('hoaMonthlyFee') ? handleAutoCorrect('hoaMonthlyFee') : toggleFlag('hoaMonthlyFee')}
+                  className={`p-1 rounded hover:bg-gray-100 ${
+                    flaggedFields.has('hoaMonthlyFee') ? 'text-orange-600' : 'text-gray-400'
+                  }`}
+                  title={flaggedFields.has('hoaMonthlyFee') ? 'Click to research correction' : 'Flag for review'}
+                >
+                  {correctingField === 'hoaMonthlyFee' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Flag className="h-4 w-4" fill={flaggedFields.has('hoaMonthlyFee') ? 'currentColor' : 'none'} />
+                  )}
+                </button>
+              </Label>
               <Input
                 id="hoaFee"
                 type="number"
                 value={formData.hoaMonthlyFee || ''}
                 onChange={(e) => setFormData({ ...formData, hoaMonthlyFee: parseFloat(e.target.value) || undefined })}
+                className={flaggedFields.has('hoaMonthlyFee') ? 'border-orange-400 bg-orange-50' : ''}
               />
             </div>
 
