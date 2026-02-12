@@ -169,6 +169,41 @@ export function MapView({
       markerClusterer.current = new MarkerClusterer({
         map: map.current!,
         markers: Array.from(markers.current.values()),
+        renderer: {
+          render: ({ count, position }) => {
+            // Create custom red cluster marker
+            const svg = `
+              <svg fill="#dc2626" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="50" height="50">
+                <circle cx="120" cy="120" opacity=".6" r="70" />
+                <circle cx="120" cy="120" opacity=".3" r="90" />
+                <circle cx="120" cy="120" opacity=".2" r="110" />
+              </svg>
+            `;
+            const clusterElement = document.createElement('div');
+            clusterElement.innerHTML = svg;
+            clusterElement.style.position = 'relative';
+            clusterElement.style.cursor = 'pointer';
+            
+            // Add count label
+            const label = document.createElement('div');
+            label.textContent = String(count);
+            label.style.position = 'absolute';
+            label.style.top = '50%';
+            label.style.left = '50%';
+            label.style.transform = 'translate(-50%, -50%)';
+            label.style.color = 'white';
+            label.style.fontSize = '14px';
+            label.style.fontWeight = 'bold';
+            label.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+            clusterElement.appendChild(label);
+
+            return new window.google.maps.marker.AdvancedMarkerElement({
+              position,
+              content: clusterElement,
+              zIndex: Number(window.google.maps.Marker.MAX_ZINDEX) + count,
+            });
+          },
+        },
       });
     }
 
