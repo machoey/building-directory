@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 
 interface Building {
   id: string;
@@ -38,6 +39,7 @@ export function MapView({
     new Map()
   );
   const infoWindow = useRef<google.maps.InfoWindow | null>(null);
+  const markerClusterer = useRef<MarkerClusterer | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || map.current) return;
@@ -92,7 +94,6 @@ export function MapView({
       });
 
       const marker = new window.google.maps.marker.AdvancedMarkerElement({
-        map: map.current!,
         position: { lat: building.latitude, lng: building.longitude },
         title: building.name,
         content: pinElement,
@@ -157,6 +158,19 @@ export function MapView({
 
       markers.current.set(building.id, marker);
     });
+
+    // Clear existing clusterer
+    if (markerClusterer.current) {
+      markerClusterer.current.clearMarkers();
+    }
+
+    // Create new clusterer with all markers
+    if (markers.current.size > 0) {
+      markerClusterer.current = new MarkerClusterer({
+        map: map.current!,
+        markers: Array.from(markers.current.values()),
+      });
+    }
 
     // Listen for custom event from info window button
     const handleBuildingDetailClick = (e: Event) => {
