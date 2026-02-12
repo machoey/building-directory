@@ -39,22 +39,33 @@ interface AirtableRecord {
 }
 
 export async function fetchBuildings(): Promise<Building[]> {
-  const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}`;
+  let allRecords: AirtableRecord[] = [];
+  let offset: string | undefined = undefined;
   
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-    },
-  });
+  // Fetch all pages from Airtable
+  do {
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}${
+      offset ? `?offset=${offset}` : ''
+    }`;
+    
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch buildings: ${response.statusText}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Failed to fetch buildings: ${response.statusText}`);
+    }
 
-  const data = await response.json();
-  const records: AirtableRecord[] = data.records || [];
+    const data = await response.json();
+    const records: AirtableRecord[] = data.records || [];
+    allRecords = allRecords.concat(records);
+    
+    offset = data.offset; // Will be undefined when no more pages
+  } while (offset);
 
-  return records.map((record) => ({
+  return allRecords.map((record) => ({
     id: record.id,
     name: record.fields["Building Name"] || "Unnamed Building",
     address: record.fields["Address"],
