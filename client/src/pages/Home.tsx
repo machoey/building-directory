@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { fetchBuildings } from "@/lib/airtable";
 import type { Building } from "@/types/building";
 import BuildingCard from "@/components/BuildingCard";
@@ -35,6 +35,7 @@ export default function Home() {
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const mapRef = useRef<any>(null);
 
 
   useEffect(() => {
@@ -114,6 +115,36 @@ export default function Home() {
       return true;
     });
   }, [buildings, searchQuery, selectedCity, selectedNeighborhood, selectedDecade]);
+
+  // Auto-navigate map when neighborhood or city filter changes
+  useEffect(() => {
+    if (!mapRef.current || filteredBuildings.length === 0 || typeof google === 'undefined') return;
+    
+    // Only auto-navigate when a filter is actually selected
+    if (!selectedNeighborhood && !selectedCity) return;
+    
+    // Calculate bounds for filtered buildings
+    const bounds = new google.maps.LatLngBounds();
+    let hasValidCoords = false;
+    
+    filteredBuildings.forEach((building) => {
+      if (building.latitude && building.longitude) {
+        bounds.extend({ lat: building.latitude, lng: building.longitude });
+        hasValidCoords = true;
+      }
+    });
+    
+    if (hasValidCoords) {
+      mapRef.current.fitBounds(bounds);
+      // Add some padding and limit max zoom
+      setTimeout(() => {
+        const zoom = mapRef.current?.getZoom();
+        if (zoom && zoom > 15) {
+          mapRef.current.setZoom(15);
+        }
+      }, 100);
+    }
+  }, [selectedNeighborhood, selectedCity]);
 
   const handleBuildingClick = (building: Building) => {
     setSelectedBuilding(building);
@@ -391,6 +422,7 @@ export default function Home() {
                 hoveredBuilding={hoveredBuilding}
                 onBuildingClick={handleBuildingClick}
                 onMapReady={(map: google.maps.Map) => {
+                  mapRef.current = map;
                   // Center on San Mateo County
                   map.setCenter({ lat: 37.5630, lng: -122.3255 });
                   map.setZoom(11);
