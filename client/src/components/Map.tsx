@@ -120,7 +120,13 @@ export function MapView({
             <div style="padding: 16px;">
               <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 600; color: #1f2937; line-height: 1.3;">${building.name || 'Unknown Building'}</h3>
               <div style="font-size: 14px; color: #4b5563; line-height: 1.7;">
-                ${building.address ? `<p style="margin: 6px 0; display: flex; align-items: start;"><span style="margin-right: 6px; font-size: 16px;">📍</span><span>${building.address}</span></p>` : ''}
+                ${building.address ? `<p style="margin: 6px 0; display: flex; align-items: start;"><span style="margin-right: 6px; font-size: 16px;">📍</span><span>${(() => {
+                  const addresses = building.address.split(';').map(a => a.trim()).filter(Boolean);
+                  if (addresses.length > 1) {
+                    return addresses[0] + ' <span style="color: #3b82f6;">(Multiple Addresses)</span>';
+                  }
+                  return building.address;
+                })()}</span></p>` : ''}
                 ${building.city ? `<p style="margin: 6px 0; padding-left: 22px; color: #6b7280;">${building.city}${building.state ? ', ' + building.state : ''}</p>` : ''}
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
                   ${building.totalUnits ? `<p style="margin: 6px 0;"><strong style="color: #374151;">Units:</strong> ${building.totalUnits}</p>` : ''}

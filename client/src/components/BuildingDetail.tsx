@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,8 @@ interface BuildingDetailProps {
 }
 
 export default function BuildingDetail({ building, open, onOpenChange }: BuildingDetailProps) {
+  const [showAllAddresses, setShowAllAddresses] = useState(false);
+  
   if (!building) return null;
 
   const photoUrl = building.photos?.[0]?.url;
@@ -52,7 +55,43 @@ export default function BuildingDetail({ building, open, onOpenChange }: Buildin
                     <MapPin className="h-4 w-4" />
                     <span>Address</span>
                   </div>
-                  <p className="font-medium text-sm">{building.address}</p>
+                  <p className="font-medium text-sm">
+                    {(() => {
+                      const addresses = building.address.split(';').map(a => a.trim()).filter(Boolean);
+                      if (addresses.length > 1) {
+                        if (showAllAddresses) {
+                          return (
+                            <span>
+                              {addresses.map((addr, i) => (
+                                <span key={i}>
+                                  {addr}
+                                  {i < addresses.length - 1 && <br />}
+                                </span>
+                              ))}
+                              <button
+                                onClick={() => setShowAllAddresses(false)}
+                                className="text-blue-600 hover:underline ml-2"
+                              >
+                                (Show Less)
+                              </button>
+                            </span>
+                          );
+                        }
+                        return (
+                          <span>
+                            {addresses[0]}{' '}
+                            <button
+                              onClick={() => setShowAllAddresses(true)}
+                              className="text-blue-600 hover:underline"
+                            >
+                              (Multiple Addresses)
+                            </button>
+                          </span>
+                        );
+                      }
+                      return building.address;
+                    })()}
+                  </p>
                   {building.city && building.state && (
                     <p className="text-sm text-muted-foreground">
                       {building.city}, {building.state}

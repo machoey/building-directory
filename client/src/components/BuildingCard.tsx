@@ -74,7 +74,15 @@ export default function BuildingCard({ building, onClick, onMouseEnter, onMouseL
           {building.address && (
             <div className="flex items-start gap-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span className="line-clamp-1">{building.address}</span>
+              <span className="line-clamp-1">
+                {(() => {
+                  const addresses = building.address.split(';').map(a => a.trim()).filter(Boolean);
+                  if (addresses.length > 1) {
+                    return `${addresses[0]} (Multiple)`;
+                  }
+                  return building.address;
+                })()}
+              </span>
             </div>
           )}
 
