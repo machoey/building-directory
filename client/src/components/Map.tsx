@@ -109,7 +109,7 @@ export function MapView({
         // Build info window content with photo thumbnail
         const photoUrl = building.photoUrl || building.photo || '';
         const contentString = `
-          <div style="padding: 0; max-width: 340px; font-family: system-ui, -apple-system, sans-serif;">
+          <div id="infowindow-${building.id}" style="padding: 0; max-width: 340px; font-family: system-ui, -apple-system, sans-serif; cursor: pointer;">
             ${photoUrl ? `
               <div style="width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0;">
                 <img src="${photoUrl}" alt="${building.name || 'Building'}" 
@@ -142,6 +142,16 @@ export function MapView({
         infoWindow.current.open({
           anchor: marker,
           map: map.current!,
+        });
+
+        // Add click listener to InfoWindow content to open full details
+        window.google.maps.event.addListenerOnce(infoWindow.current, 'domready', () => {
+          const infoWindowElement = document.getElementById(`infowindow-${building.id}`);
+          if (infoWindowElement && onBuildingClick) {
+            infoWindowElement.addEventListener('click', () => {
+              onBuildingClick(building);
+            });
+          }
         });
       });
 
