@@ -34,7 +34,8 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
         totalUnits: building.totalUnits,
         yearBuilt: building.yearBuilt,
         neighborhood: building.neighborhood || '',
-        hoaMonthlyFee: building.hoaMonthlyFee,
+        hoaMonthlyFeeMin: building.hoaMonthlyFeeMin,
+        hoaMonthlyFeeMax: building.hoaMonthlyFeeMax,
         notes: building.notes || '',
         latitude: building.latitude,
         longitude: building.longitude,
@@ -144,7 +145,7 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
       const updatedData = { ...formData };
       
       // If HOA fee was edited, update the last updated date and source
-      if (formData.hoaMonthlyFee !== building.hoaMonthlyFee) {
+      if (formData.hoaMonthlyFeeMin !== building.hoaMonthlyFeeMin || formData.hoaMonthlyFeeMax !== building.hoaMonthlyFeeMax) {
         updatedData.hoaLastUpdated = new Date().toISOString().split('T')[0];
         updatedData.dataSources = building.dataSources 
           ? `${building.dataSources}, User Provided` 
@@ -321,9 +322,9 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
               />
             </div>
 
-            <div>
-              <Label htmlFor="hoaFee" className="flex items-center justify-between">
-                <span>HOA Monthly Fee</span>
+            <div className="col-span-2">
+              <Label className="flex items-center justify-between mb-2">
+                <span>HOA Monthly Fee Range</span>
                 <button
                   type="button"
                   onClick={() => flaggedFields.has('hoaMonthlyFee') ? handleAutoCorrect('hoaMonthlyFee') : toggleFlag('hoaMonthlyFee')}
@@ -339,13 +340,30 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
                   )}
                 </button>
               </Label>
-              <Input
-                id="hoaFee"
-                type="number"
-                value={formData.hoaMonthlyFee || ''}
-                onChange={(e) => setFormData({ ...formData, hoaMonthlyFee: parseFloat(e.target.value) || undefined })}
-                className={flaggedFields.has('hoaMonthlyFee') ? 'border-orange-400 bg-orange-50' : ''}
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label htmlFor="hoaFeeMin" className="text-xs text-muted-foreground">Min ($)</Label>
+                  <Input
+                    id="hoaFeeMin"
+                    type="number"
+                    value={formData.hoaMonthlyFeeMin || ''}
+                    onChange={(e) => setFormData({ ...formData, hoaMonthlyFeeMin: parseFloat(e.target.value) || undefined })}
+                    className={flaggedFields.has('hoaMonthlyFee') ? 'border-orange-400 bg-orange-50' : ''}
+                    placeholder="e.g., 300"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hoaFeeMax" className="text-xs text-muted-foreground">Max ($)</Label>
+                  <Input
+                    id="hoaFeeMax"
+                    type="number"
+                    value={formData.hoaMonthlyFeeMax || ''}
+                    onChange={(e) => setFormData({ ...formData, hoaMonthlyFeeMax: parseFloat(e.target.value) || undefined })}
+                    className={flaggedFields.has('hoaMonthlyFee') ? 'border-orange-400 bg-orange-50' : ''}
+                    placeholder="e.g., 899"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="col-span-2">

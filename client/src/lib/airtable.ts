@@ -18,7 +18,8 @@ interface AirtableRecord {
     "Neighborhood/District"?: string;
     "Notes"?: string;
     "Status"?: string;
-    "HOA Monthly Fee"?: number;
+    "HOA Monthly Fee Min"?: number;
+    "HOA Monthly Fee Max"?: number;
     "Amenities"?: string[];
     "Photos"?: Array<{
       id: string;
@@ -100,7 +101,8 @@ export async function fetchBuildings(
     neighborhood: record.fields["Neighborhood/District"],
     notes: record.fields["Notes"],
     status: record.fields["Status"],
-    hoaMonthlyFee: record.fields["HOA Monthly Fee"],
+    hoaMonthlyFeeMin: record.fields["HOA Monthly Fee Min"],
+    hoaMonthlyFeeMax: record.fields["HOA Monthly Fee Max"],
     amenities: record.fields["Amenities"],
     photos: record.fields["Photos"],
     photoCredits: record.fields["Photo Credits"],
@@ -128,7 +130,8 @@ export async function updateBuilding(id: string, data: Partial<Building>): Promi
   if (data.yearBuilt !== undefined) fields["Year Built"] = data.yearBuilt;
   if (data.neighborhood !== undefined) fields["Neighborhood/District"] = data.neighborhood;
   if (data.notes !== undefined) fields["Notes"] = data.notes;
-  if (data.hoaMonthlyFee !== undefined) fields["HOA Monthly Fee"] = data.hoaMonthlyFee;
+  if (data.hoaMonthlyFeeMin !== undefined) fields["HOA Monthly Fee Min"] = data.hoaMonthlyFeeMin;
+  if (data.hoaMonthlyFeeMax !== undefined) fields["HOA Monthly Fee Max"] = data.hoaMonthlyFeeMax;
   if (data.approvalStatus !== undefined) fields["Approval Status"] = data.approvalStatus;
   if (data.latitude !== undefined) fields["Latitude"] = data.latitude;
   if (data.longitude !== undefined) fields["Longitude"] = data.longitude;

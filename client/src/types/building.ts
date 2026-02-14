@@ -9,7 +9,8 @@ export interface Building {
   neighborhood?: string;
   notes?: string;
   status?: string;
-  hoaMonthlyFee?: number;
+  hoaMonthlyFeeMin?: number;
+  hoaMonthlyFeeMax?: number;
   amenities?: string[];
   photos?: Array<{
     id: string;

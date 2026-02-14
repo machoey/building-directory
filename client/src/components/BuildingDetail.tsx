@@ -181,14 +181,17 @@ export default function BuildingDetail({ building, open, onOpenChange, onBuildin
                 </div>
               )}
 
-              {building.hoaMonthlyFee && (
+              {(building.hoaMonthlyFeeMin || building.hoaMonthlyFeeMax) && (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <DollarSign className="h-4 w-4" />
                     <span>HOA Fee</span>
                   </div>
                   <p className="font-medium text-lg">
-                    ${building.hoaMonthlyFee.toLocaleString()}/mo
+                    {building.hoaMonthlyFeeMin && building.hoaMonthlyFeeMax && building.hoaMonthlyFeeMin !== building.hoaMonthlyFeeMax
+                      ? `$${building.hoaMonthlyFeeMin.toLocaleString()} - $${building.hoaMonthlyFeeMax.toLocaleString()}/mo`
+                      : `$${(building.hoaMonthlyFeeMin || building.hoaMonthlyFeeMax)?.toLocaleString()}/mo`
+                    }
                   </p>
                 </div>
               )}

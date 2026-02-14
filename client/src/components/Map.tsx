@@ -11,7 +11,8 @@ interface Building {
   longitude?: number;
   totalUnits?: number;
   yearBuilt?: number;
-  hoaMonthlyFee?: number | string;
+  hoaMonthlyFeeMin?: number;
+  hoaMonthlyFeeMax?: number;
   photoUrl?: string;
   photo?: string;
 }
@@ -131,7 +132,7 @@ export function MapView({
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
                   ${building.totalUnits ? `<p style="margin: 6px 0;"><strong style="color: #374151;">Units:</strong> ${building.totalUnits}</p>` : ''}
                   ${building.yearBuilt ? `<p style="margin: 6px 0;"><strong style="color: #374151;">Built:</strong> ${building.yearBuilt}</p>` : ''}
-                  ${building.hoaMonthlyFee ? `<p style="margin: 6px 0;"><strong style="color: #374151;">HOA Fee:</strong> $${typeof building.hoaMonthlyFee === 'number' ? building.hoaMonthlyFee.toLocaleString() : building.hoaMonthlyFee}/month</p>` : ''}
+                  ${building.hoaMonthlyFeeMin || building.hoaMonthlyFeeMax ? `<p style="margin: 6px 0;"><strong style="color: #374151;">HOA Fee:</strong> ${building.hoaMonthlyFeeMin && building.hoaMonthlyFeeMax && building.hoaMonthlyFeeMin !== building.hoaMonthlyFeeMax ? `$${building.hoaMonthlyFeeMin.toLocaleString()} - $${building.hoaMonthlyFeeMax.toLocaleString()}` : `$${(building.hoaMonthlyFeeMin || building.hoaMonthlyFeeMax).toLocaleString()}`}/month</p>` : ''}
                 </div>
               </div>
             </div>

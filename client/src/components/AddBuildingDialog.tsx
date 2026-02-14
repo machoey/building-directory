@@ -23,7 +23,8 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
     totalUnits: "",
     yearBuilt: "",
     neighborhood: "",
-    hoaMonthlyFee: "",
+    hoaMonthlyFeeMin: "",
+    hoaMonthlyFeeMax: "",
     notes: "",
     latitude: "",
     longitude: "",
@@ -92,8 +93,13 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
       if (formData.totalUnits) airtableData["Total Units"] = parseInt(formData.totalUnits);
       if (formData.yearBuilt) airtableData["Year Built"] = parseInt(formData.yearBuilt);
       if (formData.neighborhood) airtableData["Neighborhood/District"] = formData.neighborhood;
-      if (formData.hoaMonthlyFee) {
-        airtableData["HOA Monthly Fee"] = parseFloat(formData.hoaMonthlyFee);
+      if (formData.hoaMonthlyFeeMin) {
+        airtableData["HOA Monthly Fee Min"] = parseFloat(formData.hoaMonthlyFeeMin);
+      }
+      if (formData.hoaMonthlyFeeMax) {
+        airtableData["HOA Monthly Fee Max"] = parseFloat(formData.hoaMonthlyFeeMax);
+      }
+      if (formData.hoaMonthlyFeeMin || formData.hoaMonthlyFeeMax) {
         airtableData["HOA Last Updated"] = new Date().toISOString().split('T')[0];
       }
       if (formData.notes) airtableData["Notes"] = formData.notes;
@@ -134,7 +140,8 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
         totalUnits: "",
         yearBuilt: "",
         neighborhood: "",
-        hoaMonthlyFee: "",
+        hoaMonthlyFeeMin: "",
+    hoaMonthlyFeeMax: "",
         notes: "",
         latitude: "",
         longitude: "",
@@ -233,14 +240,29 @@ export function AddBuildingDialog({ open, onOpenChange, onSave }: AddBuildingDia
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="hoaMonthlyFee">HOA Monthly Fee ($)</Label>
-            <Input
-              id="hoaMonthlyFee"
-              type="number"
-              value={formData.hoaMonthlyFee}
-              onChange={(e) => handleChange("hoaMonthlyFee", e.target.value)}
-              placeholder="e.g., 450"
-            />
+            <Label>HOA Monthly Fee Range ($)</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label htmlFor="hoaMonthlyFeeMin" className="text-xs text-muted-foreground">Min</Label>
+                <Input
+                  id="hoaMonthlyFeeMin"
+                  type="number"
+                  value={formData.hoaMonthlyFeeMin}
+                  onChange={(e) => handleChange("hoaMonthlyFeeMin", e.target.value)}
+                  placeholder="e.g., 300"
+                />
+              </div>
+              <div>
+                <Label htmlFor="hoaMonthlyFeeMax" className="text-xs text-muted-foreground">Max</Label>
+                <Input
+                  id="hoaMonthlyFeeMax"
+                  type="number"
+                  value={formData.hoaMonthlyFeeMax}
+                  onChange={(e) => handleChange("hoaMonthlyFeeMax", e.target.value)}
+                  placeholder="e.g., 899"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
