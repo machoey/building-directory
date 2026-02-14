@@ -18,8 +18,8 @@ interface AirtableRecord {
     "Neighborhood/District"?: string;
     "Notes"?: string;
     "Status"?: string;
-    "HOA Monthly Fee Min"?: number;
-    "HOA Monthly Fee Max"?: number;
+    "HOA Min": number;
+    "HOA Max": number;
     "Amenities"?: string[];
     "Photos"?: Array<{
       id: string;
@@ -101,8 +101,8 @@ export async function fetchBuildings(
     neighborhood: record.fields["Neighborhood/District"],
     notes: record.fields["Notes"],
     status: record.fields["Status"],
-    hoaMonthlyFeeMin: record.fields["HOA Monthly Fee Min"],
-    hoaMonthlyFeeMax: record.fields["HOA Monthly Fee Max"],
+    hoaMonthlyFeeMin: record.fields["HOA Min"],
+    hoaMonthlyFeeMax: record.fields["HOA Max"],
     amenities: record.fields["Amenities"],
     photos: record.fields["Photos"],
     photoCredits: record.fields["Photo Credits"],
@@ -130,8 +130,8 @@ export async function updateBuilding(id: string, data: Partial<Building>): Promi
   if (data.yearBuilt !== undefined) fields["Year Built"] = data.yearBuilt;
   if (data.neighborhood !== undefined) fields["Neighborhood/District"] = data.neighborhood;
   if (data.notes !== undefined) fields["Notes"] = data.notes;
-  if (data.hoaMonthlyFeeMin !== undefined) fields["HOA Monthly Fee Min"] = data.hoaMonthlyFeeMin;
-  if (data.hoaMonthlyFeeMax !== undefined) fields["HOA Monthly Fee Max"] = data.hoaMonthlyFeeMax;
+  if (data.hoaMonthlyFeeMin !== undefined) fields["HOA Min"] = data.hoaMonthlyFeeMin;
+  if (data.hoaMonthlyFeeMax !== undefined) fields["HOA Max"] = data.hoaMonthlyFeeMax;
   if (data.approvalStatus !== undefined) fields["Approval Status"] = data.approvalStatus;
   if (data.latitude !== undefined) fields["Latitude"] = data.latitude;
   if (data.longitude !== undefined) fields["Longitude"] = data.longitude;
@@ -151,6 +151,8 @@ export async function updateBuilding(id: string, data: Partial<Building>): Promi
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to update building: ${response.statusText}`);
+    const errorData = await response.json().catch(() => ({ error: { message: response.statusText } }));
+    const errorMessage = errorData.error?.message || response.statusText;
+    throw new Error(`Failed to update building: ${errorMessage}`);
   }
 }

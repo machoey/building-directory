@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,13 @@ import { Building, updateBuilding } from '@/lib/airtable';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { verifyWithAssessor } from '@/lib/countyAssessor';
-import { Flag, Loader2 } from 'lucide-react';
+import { Flag, Loader2, Upload, Eye, Image as ImageIcon } from 'lucide-react';
+import {
+  Dialog as PhotoDialog,
+  DialogContent as PhotoDialogContent,
+  DialogHeader as PhotoDialogHeader,
+  DialogTitle as PhotoDialogTitle,
+} from '@/components/ui/dialog';
 
 interface BuildingEditDialogProps {
   building: Building | null;
@@ -23,6 +29,10 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
   const [verifying, setVerifying] = useState(false);
   const [flaggedFields, setFlaggedFields] = useState<Set<string>>(new Set());
   const [correctingField, setCorrectingField] = useState<string | null>(null);
+  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState<string | null>(null);
+  const [showStreetViewPreview, setShowStreetViewPreview] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (building) {
@@ -172,6 +182,7 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
@@ -399,6 +410,94 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
             </div>
 
             <div className="col-span-2">
+              <Label>Building Photo</Label>
+              <div className="space-y-3">
+                {/* Current Photo Preview */}
+                {(building.photos?.[0]?.url || uploadedPhotoUrl) && (
+                  <div className="relative border rounded-lg overflow-hidden">
+                    <img
+                      src={uploadedPhotoUrl || building.photos?.[0]?.url}
+                      alt={building.name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute bottom-2 right-2 flex gap-2">
+                      <Badge variant="secondary" className="bg-black/50 text-white">
+                        {uploadedPhotoUrl ? 'New Upload' : (building.photoCredits || 'Current Photo')}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {/* Photo Actions */}
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+
+                      setUploadingPhoto(true);
+                      try {
+                        // Convert to base64 for preview
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setUploadedPhotoUrl(reader.result as string);
+                          toast.success('Photo uploaded! Remember to save changes.');
+                        };
+                        reader.readAsDataURL(file);
+                      } catch (error) {
+                        toast.error('Failed to upload photo');
+                        console.error(error);
+                      } finally {
+                        setUploadingPhoto(false);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                  >
+                    {uploadingPhoto ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    Upload Photo
+                  </Button>
+                  
+                  {building.latitude && building.longitude && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowStreetViewPreview(true)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Preview Street View
+                    </Button>
+                  )}
+                  
+                  {uploadedPhotoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setUploadedPhotoUrl(null)}
+                    >
+                      Remove Upload
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="col-span-2">
               <Label htmlFor="photoCredits">Photo Credits</Label>
               <Input
                 id="photoCredits"
@@ -423,5 +522,47 @@ export function BuildingEditDialog({ building, open, onOpenChange, onSave }: Bui
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Street View Preview Modal */}
+    <PhotoDialog open={showStreetViewPreview} onOpenChange={setShowStreetViewPreview}>
+      <PhotoDialogContent className="max-w-4xl">
+        <PhotoDialogHeader>
+          <PhotoDialogTitle>Google Street View Preview</PhotoDialogTitle>
+        </PhotoDialogHeader>
+        <div className="space-y-4">
+          {building.latitude && building.longitude ? (
+            <>
+              <img
+                src={`https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${building.latitude},${building.longitude}&fov=80&heading=70&pitch=0&key=AIzaSyAbEQ1rnR8YhU8RZwXRNU87sqmRJaBeTtY`}
+                alt="Street View"
+                className="w-full rounded-lg"
+              />
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  This is what Google Street View sees at this location
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const streetViewUrl = `https://maps.googleapis.com/maps/api/streetview?size=800x600&location=${building.latitude},${building.longitude}&fov=80&heading=70&pitch=0&key=AIzaSyAbEQ1rnR8YhU8RZwXRNU87sqmRJaBeTtY`;
+                    setUploadedPhotoUrl(streetViewUrl);
+                    setFormData({ ...formData, photoCredits: '© Google Street View' });
+                    setShowStreetViewPreview(false);
+                    toast.success('Street View photo selected! Remember to save changes.');
+                  }}
+                >
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Use This Photo
+                </Button>
+              </div>
+            </>
+          ) : (
+            <p className="text-muted-foreground">No coordinates available for Street View</p>
+          )}
+        </div>
+      </PhotoDialogContent>
+    </PhotoDialog>
+    </>
   );
 }
