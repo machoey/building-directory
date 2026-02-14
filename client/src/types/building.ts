@@ -32,4 +32,5 @@ export interface Building {
   assessorYearBuilt?: number;
   assessorTotalUnits?: number;
   assessorSourceUrl?: string;
+  approvalStatus?: 'Pending Review' | 'Approved' | 'Needs Revision';
 }

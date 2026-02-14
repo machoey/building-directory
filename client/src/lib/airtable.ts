@@ -40,6 +40,7 @@ interface AirtableRecord {
     "Assessor Year Built"?: number;
     "Assessor Total Units"?: number;
     "Assessor Source URL"?: string;
+    "Approval Status"?: string;
   };
 }
 
@@ -110,6 +111,7 @@ export async function fetchBuildings(
     assessorYearBuilt: record.fields["Assessor Year Built"],
     assessorTotalUnits: record.fields["Assessor Total Units"],
     assessorSourceUrl: record.fields["Assessor Source URL"],
+    approvalStatus: record.fields["Approval Status"] as 'Pending Review' | 'Approved' | 'Needs Revision' | undefined,
   }));
 }
 
@@ -127,6 +129,7 @@ export async function updateBuilding(id: string, data: Partial<Building>): Promi
   if (data.neighborhood !== undefined) fields["Neighborhood/District"] = data.neighborhood;
   if (data.notes !== undefined) fields["Notes"] = data.notes;
   if (data.hoaMonthlyFee !== undefined) fields["HOA Monthly Fee"] = data.hoaMonthlyFee;
+  if (data.approvalStatus !== undefined) fields["Approval Status"] = data.approvalStatus;
   if (data.latitude !== undefined) fields["Latitude"] = data.latitude;
   if (data.longitude !== undefined) fields["Longitude"] = data.longitude;
   if (data.dataSources !== undefined) fields["Data Sources"] = data.dataSources;

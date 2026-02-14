@@ -6,18 +6,43 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Building } from "@/types/building";
-import { MapPin, Calendar, Users, DollarSign, Building2 } from "lucide-react";
+import { MapPin, Calendar, Users, DollarSign, Building2, Check, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAdmin } from "@/contexts/AdminContext";
+import { updateBuilding } from "@/lib/airtable";
+import { toast } from "sonner";
 
 interface BuildingDetailProps {
   building: Building | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onBuildingUpdate?: () => void;
 }
 
-export default function BuildingDetail({ building, open, onOpenChange }: BuildingDetailProps) {
+export default function BuildingDetail({ building, open, onOpenChange, onBuildingUpdate }: BuildingDetailProps) {
   const [showAllAddresses, setShowAllAddresses] = useState(false);
+  const { isAdmin } = useAdmin();
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleApprovalStatusChange = async (status: 'Approved' | 'Needs Revision') => {
+    if (!building) return;
+    
+    setIsUpdating(true);
+    try {
+      await updateBuilding(building.id, { approvalStatus: status });
+      toast.success(`Building marked as ${status}`);
+      if (onBuildingUpdate) {
+        onBuildingUpdate();
+      }
+    } catch (error) {
+      toast.error('Failed to update approval status');
+      console.error(error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
   
   if (!building) return null;
 
@@ -44,6 +69,42 @@ export default function BuildingDetail({ building, open, onOpenChange }: Buildin
             ) : (
               <div className="relative h-64 bg-muted overflow-hidden rounded-lg flex items-center justify-center">
                 <Building2 className="h-24 w-24 text-muted-foreground/30" />
+              </div>
+            )}
+
+            {/* Approval Status */}
+            {isAdmin && (
+              <div className="border rounded-lg p-4 bg-muted/50">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold">Approval Status</h3>
+                  <Badge 
+                    variant={building.approvalStatus === 'Approved' ? 'default' : building.approvalStatus === 'Needs Revision' ? 'destructive' : 'secondary'}
+                  >
+                    {building.approvalStatus || 'Pending Review'}
+                  </Badge>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    onClick={() => handleApprovalStatusChange('Approved')}
+                    disabled={isUpdating || building.approvalStatus === 'Approved'}
+                  >
+                    <Check className="h-4 w-4 mr-1" />
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="flex-1 bg-yellow-600 hover:bg-yellow-700"
+                    onClick={() => handleApprovalStatusChange('Needs Revision')}
+                    disabled={isUpdating || building.approvalStatus === 'Needs Revision'}
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Needs Revision
+                  </Button>
+                </div>
               </div>
             )}
 

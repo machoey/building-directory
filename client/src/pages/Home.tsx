@@ -530,6 +530,13 @@ export default function Home() {
         building={selectedBuilding}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onBuildingUpdate={() => {
+          // Reload buildings after approval status change
+          const cityFilter = quickFilter || selectedCity || undefined;
+          fetchBuildings({ city: cityFilter })
+            .then(setBuildings)
+            .catch(console.error);
+        }}
       />
       
       {/* Admin Dialogs */}
