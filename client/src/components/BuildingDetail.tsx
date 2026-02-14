@@ -59,12 +59,28 @@ export default function BuildingDetail({ building, open, onOpenChange, onBuildin
           <div className="space-y-6">
             {/* Photo */}
             {photoUrl ? (
-              <div className="relative h-64 bg-muted overflow-hidden rounded-lg">
+              <div 
+                className="relative h-64 bg-muted overflow-hidden rounded-lg cursor-pointer group"
+                onClick={() => {
+                  if (building.latitude && building.longitude) {
+                    window.open(
+                      `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${building.latitude},${building.longitude}`,
+                      '_blank'
+                    );
+                  }
+                }}
+                title="Click to open in Google Street View"
+              >
                 <img
                   src={photoUrl}
                   alt={building.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 px-4 py-2 rounded-lg">
+                    <p className="text-sm font-medium text-gray-900">Open in Street View</p>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="relative h-64 bg-muted overflow-hidden rounded-lg flex items-center justify-center">
